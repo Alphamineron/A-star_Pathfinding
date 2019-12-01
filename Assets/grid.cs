@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class grid : MonoBehaviour {
 
+	public Transform player;
+
 	public LayerMask unwalkableMask;
 	public Vector2 gridWorldSize;
 	public float nodeRadius;
@@ -32,12 +34,28 @@ public class grid : MonoBehaviour {
 		}
 	}
 
+	public Node NodeFromWorldPoint(Vector3 worldPos) {
+		float percentX = (worldPos.x + gridWorldSize.x/2) / gridWorldSize.x;
+		float percentY = (worldPos.z + gridWorldSize.y/2) / gridWorldSize.y;
+		percentX = Mathf.Clamp01(percentX);		// Incase worldPos is outside the grid, this is to avoid getting invalid index
+		percentY = Mathf.Clamp01(percentY);
+
+		int x = Mathf.RoundToInt((gridSizeX-1) * percentX);
+		int y = Mathf.RoundToInt((gridSizeY-1) * percentY);
+		return Grid[x,y];
+	}
+
 	void OnDrawGizmos() {
 		Gizmos.DrawWireCube(transform.position, new Vector3(gridWorldSize.x, 1, gridWorldSize.y));
 
 		if(Grid != null) {
+			Node playerNode = NodeFromWorldPoint(player.position);
+
 			foreach(Node n in Grid) {
 				Gizmos.color = (n.walkable)? Color.white : Color.red;
+				if(playerNode == n) {
+					Gizmos.color = Color.cyan;
+				}
 				Gizmos.DrawCube(n.worldPos, Vector3.one * (nodeDiameter-0.1f));
 			}
 		}
